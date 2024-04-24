@@ -26,7 +26,7 @@ def main():
     model = model.cuda()
     model.eval()
     featdim = 2048
-    class_dim = 1000
+    class_dim = 2
 
     transform = tv.transforms.Compose([
             tv.transforms.Resize(256),
