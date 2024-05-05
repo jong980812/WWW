@@ -21,8 +21,21 @@ def main():
     ## Load model ##
     ##### ResNET50 #####
     from models.resnet import resnet50, ResNet50_Weights
+    
     weights = ResNet50_Weights.DEFAULT
     model = resnet50(weights=weights)
+    '''
+    model.fc. 어쩌구 해서 shape바꿈
+    
+    '''
+
+    weights_path ='/data/psh68380/repos/WWW/resnet_mw.pth'
+    model.fc = torch.nn.Linear(2048, 2)#! head를 pth랑 맞춰줌
+    pretrained_weights = torch.load(weights_path,map_location='cpu')#! pth를 읽어서 변수에 담음. 
+    #! pretrained_weights['model']-> 이게 weight고 디버거에서 찍어보고
+    print(f"Load pretrained from {weights_path}")
+    print(model.load_state_dict(pretrained_weights['model'],strict=True))
+    #!print()-> all key matching
     model = model.cuda()
     model.eval()
     featdim = 2048
@@ -32,8 +45,8 @@ def main():
             tv.transforms.Resize(256),
             tv.transforms.CenterCrop(224),
             tv.transforms.ToTensor(),
-            tv.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                std=[0.229, 0.224, 0.225]),
+            tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
+                                    std=[0.065, 0.065, 0.065]),
         ])
 
     traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
@@ -44,9 +57,11 @@ def main():
         shap = []
         shap_class = np.zeros((class_dim, featdim)) 
         shap_temp = np.zeros(featdim)
-        for image, labels in tqdm(trainloader):
+        c = 0
+        for image, labels in (trainloader):
             image = image.cuda()
-            
+            c+=1
+            if c%100==0:print(c) 
             if class_num != labels:
                 for i in range(len(shap)):
                     shap_temp += shap[i].squeeze()    

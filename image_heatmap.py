@@ -53,7 +53,8 @@ def get_alpha_cmap(cmap):
 
 def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=5, percentile=90, alpha=0.7, gt=False):
     
-    with open(f"{args.util_root}\\heat\\class_shap.pkl", "rb") as f:
+    # with open(f"{args.util_root}/heat/class_shap.pkl", "rb") as f:
+    with open(f"{args.util_root}/class_shap.pkl", "rb") as f:
         shap_value = pkl.load(f)
 
     c_heatmap = []
@@ -63,14 +64,14 @@ def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=
     sc_idx = []
 
     #### Class concept Atribute Maps ####
-    for j, (img, label) in enumerate(tqdm(example_loader)):
+    for j, (img, label) in enumerate(example_loader):
         os.makedirs(f'{args.heatmap_save_root}/{label.item():04d}/class_attribute_n{num_top_neuron}_p{percentile}_a90', exist_ok=True)
         show(img[0])        
         img = img.cuda()    
-        feature_maps = model.extract_feature_map_4(img)
-        predict = model(img)
-        predict = predict[0].cpu().detach().numpy()
-        predict = np.argmax(predict)
+        feature_maps = model.extract_feature_map_4(img) # 1*3*224*224 => 7*7*2048
+        # predict = model(img) # 1 * 1000 => model을 우리가 사용하는 데이터 모델 사용해야됨(1000인건 imagenet으로 한 결과고, 우리는 클)
+        # predict = predict[0].cpu().detach().numpy()
+        predict = 0 #np.argmax(predict)
         feature_maps = feature_maps[0].cpu().detach().numpy()
         feature_maps = feature_maps.transpose(1, 2, 0)
         if gt:
@@ -86,7 +87,7 @@ def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=
             heatmap = heatmap * np.array(heatmap > sigma, np.float32)
 
             heatmap = cv2.resize(heatmap[:, :, None], (224, 224))
-            show(heatmap, cmap=cmap, alpha=0.9)
+            # show(heatmap, cmap=cmap, alpha=0.9)
         # plt.show()
         
         if gt:
@@ -96,7 +97,7 @@ def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=
         plt.clf()
 
     #### Class overall Atribute Maps ####
-    for j, (img, label) in enumerate(tqdm(example_loader)):
+    for j, (img, label) in enumerate(example_loader):
         os.makedirs(f'{args.heatmap_save_root}/{label.item():04d}/class_overall_n{num_top_neuron}_p0_a50', exist_ok=True)
         show(img[0]) 
         img = img.cuda()    
@@ -140,16 +141,16 @@ def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=
         plt.clf()
         # plt.close()
     
-    with open(f"{args.map_root}\\cc_val.pkl", "wb") as f:
+    with open(f"{args.map_root}/cc_val.pkl", "wb") as f:
         pkl.dump(cc_val, f)
     cc_val = None
 
-    with open(f"{args.map_root}\\c_heatmap.pkl", "wb") as f:
+    with open(f"{args.map_root}/c_heatmap.pkl", "wb") as f:
         pkl.dump(c_heatmap, f)
     c_heatmap = None
 
     #### sample concept Atribute Maps ####
-    for j, (img, label) in enumerate(tqdm(example_loader)):
+    for j, (img, label) in enumerate(example_loader):
         os.makedirs(f'{args.heatmap_save_root}/{label.item():04d}/sample_attribute_n{num_top_neuron}_p{percentile}_a90', exist_ok=True)
         show(img[0])
         img = img.cuda()    
@@ -178,12 +179,12 @@ def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=
         plt.savefig(f'{args.heatmap_save_root}/{label.item():04d}/sample_attribute_n{num_top_neuron}_p{percentile}_a90/sample_att_{predict:04d}_{(j%args.num_example):02d}.jpg')
         plt.clf()
 
-    with open(f"{args.map_root}\\sc_idx.pkl", "wb") as f:
+    with open(f"{args.map_root}/sc_idx.pkl", "wb") as f:
         pkl.dump(sc_idx, f)
     sc_idx = None
 
     #### Sample overall Atribute Maps ####
-    for j, (img, label) in enumerate(tqdm(example_loader)):
+    for j, (img, label) in enumerate(example_loader):
         os.makedirs(f'{args.heatmap_save_root}/{label.item():04d}/sample_overall_n{num_top_neuron}_p0_a50', exist_ok=True)
         show(img[0])
         img = img.cuda()    
@@ -211,35 +212,36 @@ def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=
             overall_heatmap += heatmap * weight
             temp_weight.append(weight)
 
+        s_heatmap.append(overall_heatmap)
         sc_val.append(temp_weight)
         show(overall_heatmap, cmap='Reds', alpha=0.5)
 
         plt.savefig(f'{args.heatmap_save_root}/{label.item():04d}/sample_overall_n{num_top_neuron}_p0_a50/sample_ovr_{predict:04d}_{(j%args.num_example):02d}.jpg')
         plt.clf()
 
-    with open(f"{args.map_root}\\sc_val.pkl", "wb") as f:
+    with open(f"{args.map_root}/sc_val.pkl", "wb") as f:
         pkl.dump(sc_val, f)
     sc_val = None
-    with open(f"{args.map_root}\\s_heatmap.pkl", "wb") as f:
+    with open(f"{args.map_root}/s_heatmap.pkl", "wb") as f:
         pkl.dump(s_heatmap, f)  
     s_heatmap = None
 
 def compute_heatmap_cosine_similarity(args):
 
-    with open(args.map_root + "\\c_heatmap.pkl", "rb") as f:
+    with open(args.map_root + "/c_heatmap.pkl", "rb") as f:
         c_heatmap = pkl.load(f)
 
-    with open(args.map_root + "\\s_heatmap.pkl", "rb") as f:
+    with open(args.map_root + "/s_heatmap.pkl", "rb") as f:
         s_heatmap = pkl.load(f)
 
     cos = []
 
-    for i in tqdm(range(len(c_heatmap))):
+    for i in range(len(c_heatmap)):
         c_heatmap[i] = torch.from_numpy(c_heatmap[i].flatten())
         s_heatmap[i] = torch.from_numpy(s_heatmap[i].flatten())
         cos.append(cosine_similarity(c_heatmap[i].reshape(1, -1), s_heatmap[i].reshape(1, -1)).item())
 
-    with open(args.map_root + "\\cos.pkl", "wb") as f:
+    with open(args.map_root + "/cos.pkl", "wb") as f:
         pkl.dump(cos, f)
 
 def main():
@@ -250,7 +252,15 @@ def main():
     ##### ResNET50 #####
     from models.resnet import resnet50, ResNet50_Weights
     weights = ResNet50_Weights.DEFAULT
-    model = resnet50(weights=weights)
+    model = resnet50(weights=weights)    
+
+    weights_path ='/data/psh68380/repos/WWW/resnet_mw.pth'
+    model.fc = torch.nn.Linear(2048, 2)#! head를 pth랑 맞춰줌
+    pretrained_weights = torch.load(weights_path,map_location='cpu')#! pth를 읽어서 변수에 담음. 
+    #! pretrained_weights['model']-> 이게 weight고 디버거에서 찍어보고
+    print(f"Load pretrained from {weights_path}")
+    print(model.load_state_dict(pretrained_weights['model'],strict=True))
+    #!print()-> all key matching
     model = model.cuda()
     model.eval()
     featdim = 2048
@@ -259,8 +269,8 @@ def main():
             tv.transforms.Resize(256),
             tv.transforms.CenterCrop(224),
             tv.transforms.ToTensor(),
-            tv.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                std=[0.229, 0.224, 0.225]),
+            tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
+                                    std=[0.065, 0.065, 0.065]),
         ])
     
     os.makedirs(f'{args.map_root}', exist_ok=True)

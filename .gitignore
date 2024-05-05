@@ -1,2 +1,6 @@
 images
+aihub_utils
+sbatch_log
+*.pth
 *.pkl
+*.ipynb

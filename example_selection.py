@@ -12,7 +12,7 @@ def parse_args():
     parser.add_argument('--model', default='rn50', help='model name')
     parser.add_argument('--layer', default='fc', help='target layer')
     parser.add_argument('--save_root', default='./utils', help='Path to idx')
-    parser.add_argument('--img_save_root', default='./images/example_val_final', help='Path to saved img')
+    # parser.add_argument('--img_save_root', default='./images/example_val_final', help='Path to saved img')
     parser.add_argument('--num_example', default=40, type=int, help='# of examples to be used')
     parser.add_argument('--num_act', default=1, type=int, help='# of examples to be used')
 
@@ -31,6 +31,15 @@ def main():
         from models.resnet import resnet50, ResNet50_Weights
         weights = ResNet50_Weights.DEFAULT
         model = resnet50(weights=weights)
+
+        weights_path ='/data/psh68380/repos/WWW/resnet_mw.pth'
+        model.fc = torch.nn.Linear(2048, 2)#! head를 pth랑 맞춰줌
+        pretrained_weights = torch.load(weights_path, map_location='cpu')#! pth를 읽어서 변수에 담음. 
+        #! pretrained_weights['model']-> 이게 weight고 디버거에서 찍어보고
+        print(f"Load pretrained from {weights_path}")
+        print(model.load_state_dict(pretrained_weights['model'],strict=True))
+        #! print(strict=True)-> all key matching 아닐경우
+        #! (fc): Linear(in_features=2048, out_features=2, bias=True)
 
     ##### ViT-B 16  #####
     elif args.model == 'vitb16':
@@ -57,9 +66,9 @@ def main():
                 tv.transforms.Resize(256),
                 tv.transforms.CenterCrop(224),
                 tv.transforms.ToTensor(),
-                tv.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                            std=[0.229, 0.224, 0.225]),
-            ])
+                tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
+                                    std=[0.065, 0.065, 0.065]),
+        ])
 
         traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
         trainloader = torch.utils.data.DataLoader(traindata, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
@@ -68,8 +77,8 @@ def main():
             counter = 0
 
             for batch_idx, (image, labels) in enumerate(tqdm(trainloader)):
-                image = image.cuda()
-                act_matrix.append(model(image).squeeze().cpu().detach().numpy())
+                image = image.cuda() #! 저장되는 건 (batch,1000)
+                act_matrix.append(model(image).squeeze().cpu().detach().numpy()) #128 * 1000
                 if batch_idx % int(len(trainloader)/args.num_act) == 0 and batch_idx != 0:
                     act_matrix = np.concatenate(act_matrix, axis=0)
                     with open(f"{args.save_root}/slice_act_{counter}_{layer}", 'wb') as f:
@@ -85,9 +94,9 @@ def main():
                 tv.transforms.Resize(256),
                 tv.transforms.CenterCrop(224),
                 tv.transforms.ToTensor(),
-                tv.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                            std=[0.229, 0.224, 0.225]),
-            ])
+                tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
+                                    std=[0.065, 0.065, 0.065]),
+        ])
 
         traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
         trainloader = torch.utils.data.DataLoader(traindata, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
@@ -108,14 +117,14 @@ def main():
                 act_matrix = np.concatenate(act_matrix, axis=0)
                 with open(f"{args.save_root}/slice_act_{counter}_{layer}", 'wb') as f:
                     pickle.dump(act_matrix, f)
-
+    # high activating 뽑는 과정
     if True:
         offset = 0
         for i in tqdm(range(args.num_act)):
             with open(f"{args.save_root}/slice_act_{i}_{layer}", 'rb') as f:
                 act_matrix = pickle.load(f)
             
-            idx_matrix = np.zeros((args.num_example, act_matrix.shape[1]))
+            idx_matrix = np.zeros((args.num_example, act_matrix.shape[1]))#! (40,1000)
             feat_matrix = np.zeros((args.num_example, act_matrix.shape[1]))
 
             for j in range(act_matrix.shape[1]):
@@ -158,12 +167,12 @@ def main():
     if True:
         traindata = tv.datasets.ImageFolder(args.data_root)
         for i in range(idx_matrix.shape[1]):
-            os.makedirs(f'{args.img_save_root}/{i:04d}', exist_ok=True)
+            os.makedirs(f'{args.image_save_root}/{i:04d}', exist_ok=True)
             if i % 100 == 0:
                 print(i)
             for j in range(args.num_example):
                 image, labels = traindata[int(idx_matrix[j,i])]
-                img_dir = f'{args.img_save_root}/{i:04d}/{i:04d}_{j:02d}_{labels:03d}.jpg'
+                img_dir = f'{args.image_save_root}/{i:04d}/{i:04d}_{j:02d}_{labels:03d}.jpg'
                 image.save(img_dir)
                 
                 

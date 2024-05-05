@@ -1,36 +1,49 @@
+import argparse
 import pickle as pkl
 import numpy as np
 import random
 import torch
 import torchvision as tv
 
-with open('./utils/heatmap_info/class_shap.pkl', "rb") as f:
+
+def parse_args():
+    parser = argparse.ArgumentParser(description='Say hello')
+    parser.add_argument('--map_root', default='./heatmap_info', help='Path to utils')
+    parser.add_argument('--concept_root', default='./utils', help='Path to concept')
+    parser.add_argument('--interpret_root', default='./utils/heat', help='Path to concept')
+
+    return parser.parse_args()
+
+args = parse_args()
+
+
+with open('./utils/class_shap.pkl', "rb") as f:
     shap = pkl.load(f)
 
-with open('./utils/heatmap_info/sc_idx.pkl', "rb") as f:
+with open(f'{args.map_root}/heatmap_info/sc_idx.pkl', "rb") as f:
     sc_idx = pkl.load(f)
 
-with open('./utils/heatmap_info/cos.pkl', "rb") as f:
+with open(f'{args.map_root}/heatmap_info/cos.pkl', "rb") as f:
     cos = pkl.load(f)
 
-with open('./utils/heatmap_info/cos_gt.pkl', "rb") as f:
+with open(f'{args.map_root}/heatmap_info/cos_gt.pkl', "rb") as f:
     cos_gt = pkl.load(f)
 
-with open('./utils/www_img_val_80k_tem_adp_5_fc.pkl', "rb") as f:
+with open(f'{args.concept_root}/www_img_val_80k_tem_adp_5_fc.pkl', "rb") as f:
     www_major_fc, _= pkl.load(f)
 
-with open('./utils/www_img_val_80k_tem_adp_5_layer4.pkl', "rb") as f:
+with open(f'{args.concept_root}/www_img_val_80k_tem_adp_5_layer4.pkl', "rb") as f:
     www_major_l4, _ = pkl.load(f)
 
-with open('./utils/www_img_val_80k_tem_adp_10_layer4_minor.pkl', "rb") as f:
+with open(f'{args.concept_root}/www_img_val_80k_tem_adp_10_layer4_minor.pkl', "rb") as f:
     www_minor_l4, _ = pkl.load(f)
 
 transform = tv.transforms.Compose([
             tv.transforms.Resize(256),
             tv.transforms.CenterCrop(224),
             tv.transforms.ToTensor(),
-            tv.transforms.Normalize(mean=[0.485, 0.456, 0.406],
-                                std=[0.229, 0.224, 0.225]),
+            tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
+                                    std=[0.065, 0.065, 0.065]),
         ])
 
 examples_fc = tv.datasets.ImageFolder('./images/example_val_final', transform=transform)
@@ -94,8 +107,8 @@ for i in range(len(WWW_concepts)):
     concepts.append([GT_idx[i], WWW_concepts[i], GT[i]])
     concepts_l4.append([l4_idx[i], WWW_L4_major_concepts[i], WWW_L4_minor_concepts[i]])
 
-with open('./utils/heat/imagenet/concept_FC.pkl', "wb") as f:
+with open(f'{args.interpret_root}/concept_FC.pkl', "wb") as f:
     pkl.dump(concepts, f)
 
-with open('./utils/heat/imagenet/concept_L4.pkl', "wb") as f:
+with open(f'{args.interpret_root}/concept_L4.pkl', "wb") as f:
     pkl.dump(concepts_l4, f)

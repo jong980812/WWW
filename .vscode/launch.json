@@ -8,20 +8,21 @@
             "name": "extract_shap",
             "type": "debugpy",
             "request": "launch",
-            "program": "/data/jong980812/project/WWW/extract_shap.py",
+            "program": "/data/psh68380/repos/WWW/extract_shap.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_root","/local_datasets/ai_hub/ai_hub_sketch_mw/01/train",
+                "--data_root","/local_datasets/ai_hub_sketch_mw/01/train",
             ]
         },
         {
             "name": "example_selection",
             "type": "debugpy",
             "request": "launch",
-            "program": "/data/jong980812/project/WWW/example_selection.py",
+            "program": "/data/psh68380/repos/WWW/example_selection.py",
             "console": "integratedTerminal",
             "args": [
-                "--data_root","/local_datasets/ai_hub/ai_hub_sketch_mw/01/val",
+                "--data_root","/local_datasets/ai_hub_sketch_mw/01/val",
+                "--layer","l4",
                 "--save_root","exampler"
             ]
         },
@@ -29,9 +30,24 @@
             "name": "concept_matching",
             "type": "debugpy",
             "request": "launch",
-            "program": "/data/jong980812/project/WWW/concept_matching.py",
+            "program": "/data/psh68380/repos/WWW/concept_matching.py",
             "console": "integratedTerminal",
             "args": [
+                "--img_feat_root", "aihub_utils/l4",
+                "--concept_sim_root", "aihub_utils/l4",
+                "--concept_root", "aihub_utils/l4",
+            ]
+        },
+        {
+            "name": "image_heatmap",
+            "type": "debugpy",
+            "request": "launch",
+            "program": "/data/psh68380/repos/WWW/image_heatmap.py",
+            "console": "integratedTerminal",
+            "args": [
+                "--example_root","/local_datasets/ai_hub_sketch_mw/01/val",
+                "--heatmap_save_root","aihub_utils/l4/heatmap",
+                "--map_root","aihub_utils/l4/heatmap_info",
 
             ]
         }
