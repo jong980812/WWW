@@ -6,7 +6,7 @@
 #SBATCH --mem-per-gpu=25G
 #SBATCH --time 1-00:00:0
 #SBATCH --partition batch_ce_ugrad
-#SBATCH -w moana-y6
+#SBATCH -w moana-y4
 #SBATCH -o /data/psh68380/repos/WWW/sbatch_log/%A-%x.out
 #SBATCH -e /data/psh68380/repos/WWW/sbatch_log/%A-%x.err
 echo $PWD
@@ -25,10 +25,15 @@ export MASTER_PORT=12345
 
 # batch_size can be adjusted according to number of GPUs
 # this script is for 2 GPUs (1 nodes x 2 GPUs)
+# !! y1, y6은 데이터 경로 ai_hub_sketch_mw 부터, y3은 ai_hub부터
+# ! asd 데이터는 y4
+
 python -u /data/psh68380/repos/WWW/example_selection.py \
---data_root "/local_datasets/ai_hub_sketch_mw/01/val" \
---layer "fc" \
---save_root "exampler"
+--data_root "/local_datasets/asd/All_ver2/03/val_3x3cropped" \
+--layer "l4" \
+--save_root "asd_utils/cropped/exampler" \
+--img_save_root "asd_utils/cropped/" \
+--num_example 10
     
 
 echo "Job finish"

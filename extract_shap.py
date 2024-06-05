@@ -28,14 +28,17 @@ def main():
     model.fc. 어쩌구 해서 shape바꿈
     
     '''
-
-    weights_path ='/data/psh68380/repos/WWW/resnet_mw.pth'
+    weights_path ='/data/psh68380/repos/WWW/checkpoint-2.pth'
+    # weights_path ='/data/psh68380/repos/WWW/resnet_mw.pth'
     model.fc = torch.nn.Linear(2048, 2)#! head를 pth랑 맞춰줌
-    pretrained_weights = torch.load(weights_path,map_location='cpu')#! pth를 읽어서 변수에 담음. 
+    pretrained_weights = torch.load(weights_path,map_location='cpu') #! pth를 읽어서 변수에 담음. 
     #! pretrained_weights['model']-> 이게 weight고 디버거에서 찍어보고
     print(f"Load pretrained from {weights_path}")
     print(model.load_state_dict(pretrained_weights['model'],strict=True))
     #!print()-> all key matching
+    for name, layer in model.named_modules():
+      if isinstance(layer, torch.nn.Conv2d):
+          layer.padding_mode = 'replicate'
     model = model.cuda()
     model.eval()
     featdim = 2048

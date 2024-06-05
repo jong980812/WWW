@@ -25,10 +25,13 @@ export MASTER_PORT=12345
 
 # batch_size can be adjusted according to number of GPUs
 # this script is for 2 GPUs (1 nodes x 2 GPUs)
+# y4는 asd 폴더, y6은 ASD 폴더
 python -u /data/psh68380/repos/WWW/image_heatmap.py \
---example_root "/local_datasets/ai_hub_sketch_mw/01/val" \
---heatmap_save_root "aihub_utils/fc/heatmap" \
---map_root "aihub_utils/fc/heatmap_info" 
+--example_root "/local_datasets/ASD/All_ver2/03/val_cropped" \
+--heatmap_save_root "asd_utils/cropped/heatmap" \
+--num_example 20 \
+--util_root "asd_utils/cropped" \
+--map_root "asd_utils/cropped/heatmap_info" 
     
 
 echo "Job finish"

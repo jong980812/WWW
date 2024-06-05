@@ -26,9 +26,15 @@ export MASTER_PORT=12345
 # batch_size can be adjusted according to number of GPUs
 # this script is for 2 GPUs (1 nodes x 2 GPUs)
 python -u /data/psh68380/repos/WWW/concept_matching.py \
---img_feat_root "aihub_utils/l4" \
---concept_sim_root "aihub_utils/l4" \
---concept_root "aihub_utils/l4"
+--word_save_root "asd_utils/words_asd_71.pkl" \
+--img_save_root "asd_utils/cropped" \
+--img_feat_root "asd_utils/cropped/l4" \
+--concept_sim_root "asd_utils/cropped/l4" \
+--concept_root "asd_utils/cropped/l4" \
+--layer "l4" \
+--num_example 10 \
+--data_size "asd" \
+--detail True
     
 
 echo "Job finish"

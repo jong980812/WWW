@@ -6,7 +6,7 @@
 #SBATCH --mem-per-gpu=25G
 #SBATCH --time 1-00:00:0
 #SBATCH --partition batch_ce_ugrad
-#SBATCH -w moana-y3
+#SBATCH -w moana-y4
 #SBATCH -o /data/psh68380/repos/WWW/sbatch_log/%A-%x.out
 #SBATCH -e /data/psh68380/repos/WWW/sbatch_log/%A-%x.err
 echo $PWD
@@ -25,9 +25,11 @@ export MASTER_PORT=12345
 
 # batch_size can be adjusted according to number of GPUs
 # this script is for 2 GPUs (1 nodes x 2 GPUs)
+# --data_root "/local_datasets/ai_hub_sketch_mw/01/train"
 python -u /data/psh68380/repos/WWW/extract_shap.py \
---data_root "/local_datasets/ai_hub/ai_hub_sketch_mw/01/train"
-    
+--data_root "/local_datasets/asd/All_ver2/03/train_3x3cropped" \
+--shap_save_root "asd_utils/cropped/class_shap.pkl"
 
+    
 echo "Job finish"
 exit 0

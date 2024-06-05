@@ -1,6 +1,12 @@
 images
 aihub_utils
+aihub_normed_utils
+asd_utils
+heatmap
+heatmap_info
 sbatch_log
+combination_asd.py
 *.pth
 *.pkl
 *.ipynb
+*.jpg

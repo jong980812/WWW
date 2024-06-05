@@ -12,7 +12,7 @@ def parse_args():
     parser.add_argument('--model', default='rn50', help='model name')
     parser.add_argument('--layer', default='fc', help='target layer')
     parser.add_argument('--save_root', default='./utils', help='Path to idx')
-    # parser.add_argument('--img_save_root', default='./images/example_val_final', help='Path to saved img')
+    parser.add_argument('--img_save_root', default='.', help='Path to saved img')
     parser.add_argument('--num_example', default=40, type=int, help='# of examples to be used')
     parser.add_argument('--num_act', default=1, type=int, help='# of examples to be used')
 
@@ -22,8 +22,7 @@ def parse_args():
 def main():
     
     args = parse_args()
-    layer = args.layer
-    args.image_save_root = f'./images/example_val_{layer}'
+    args.image_save_root = f'{args.img_save_root}/images/example_val_{args.layer}'
 
     ## Load model ##
     ##### ResNET50 #####
@@ -32,8 +31,11 @@ def main():
         weights = ResNet50_Weights.DEFAULT
         model = resnet50(weights=weights)
 
-        weights_path ='/data/psh68380/repos/WWW/resnet_mw.pth'
+        weights_path ='/data/psh68380/repos/WWW/checkpoint-2.pth'
         model.fc = torch.nn.Linear(2048, 2)#! head를 pth랑 맞춰줌
+        for name, layer in model.named_modules():
+            if isinstance(layer, torch.nn.Conv2d):
+                layer.padding_mode = 'replicate'
         pretrained_weights = torch.load(weights_path, map_location='cpu')#! pth를 읽어서 변수에 담음. 
         #! pretrained_weights['model']-> 이게 weight고 디버거에서 찍어보고
         print(f"Load pretrained from {weights_path}")
@@ -59,7 +61,8 @@ def main():
 
 
     model.cuda().eval()
-
+    
+    layer = args.layer
     # if not os.path.exists(f"{args.save_root}/slice_act_{args.num_act-1}"):
     if layer == 'fc':
         transform = tv.transforms.Compose([
