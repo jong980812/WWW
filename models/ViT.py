@@ -431,7 +431,7 @@ class VisionTransformer(nn.Module):
         self.activations = []
         self.gradients = []
 
-    def _compute_taylor_scores(self, inputs):
+    def _compute_taylor_scores(self, inputs,labels):
         self._hook_layers()
         outputs = self._forward(inputs)
         logits = softmax(outputs.detach().cpu().numpy())
@@ -482,13 +482,16 @@ class VisionTransformer(nn.Module):
             return output
         
         i = 0
-        for module in self.modules():
+        for name,module in self.named_modules():
             # if isinstance(module, nn.AvgPool2d):
             # if isinstance(module, nn.ReLU):
-            if isinstance(module, Block):
-                if module.block_ID == 11:
-                    self.handles_list.append(module.register_forward_hook(forward_hook_relu))
-                    self.handles_list.append(module.register_backward_hook(backward_hook_relu))
+            if name=='head':
+                self.handles_list.append(module.register_forward_hook(forward_hook_relu))
+                self.handles_list.append(module.register_backward_hook(backward_hook_relu))
+            # if isinstance(module, Block):
+            #     if module.block_ID == 11:
+            #         self.handles_list.append(module.register_forward_hook(forward_hook_relu))
+            #         self.handles_list.append(module.register_backward_hook(backward_hook_relu))
 
     def _forward(self, x):
         self.activations = []

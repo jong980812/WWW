@@ -10,3 +10,6 @@ combination_asd.py
 *.pkl
 *.ipynb
 *.jpg
+.vscode/
+shapley/
+*.out

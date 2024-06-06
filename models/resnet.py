@@ -431,8 +431,8 @@ class ResNet(nn.Module):
         self.activations = []
         self.gradients = []
 
-    def _compute_taylor_scores(self, inputs, labels):
-        self._hook_layers()
+    def _compute_taylor_scores(self, inputs, labels,target_layer):
+        self._hook_layers(target_layer)
         outputs = self._forward(inputs)
         outputs[0, labels.item()].backward(retain_graph=True)
 
@@ -445,7 +445,7 @@ class ResNet(nn.Module):
         self.remove_handles()
         return first_order_taylor_scores, outputs
 
-    def _hook_layers(self):
+    def _hook_layers(self,target_layer):
         def backward_hook_relu(module, grad_input, grad_output):
             self.gradients.append(grad_output[0].to(self.device))
 
@@ -458,11 +458,17 @@ class ResNet(nn.Module):
             self.activations.append(output.to(self.device))
             return output
 
-        for module in self.modules():
-            if isinstance(module, nn.AdaptiveAvgPool2d):
-                self.handles_list.append(module.register_forward_hook(forward_hook_relu))
-                self.handles_list.append(module.register_backward_hook(backward_hook_relu))
-
+        for name,module in self.named_modules():
+            if target_layer=='layer4':
+                if isinstance(module, nn.AdaptiveAvgPool2d):
+                    self.handles_list.append(module.register_forward_hook(forward_hook_relu))
+                    self.handles_list.append(module.register_backward_hook(backward_hook_relu))
+            elif target_layer=='head':
+                if name=='fc':
+                    self.handles_list.append(module.register_forward_hook(forward_hook_relu))
+                    self.handles_list.append(module.register_backward_hook(backward_hook_relu))
+            else:
+                print('error');exit(0)
     def _forward(self, x):
         self.activations = []
         self.gradients = []
