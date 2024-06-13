@@ -1,6 +1,6 @@
 #!/bin/bash
 
-#SBATCH --job-name extract_shap_test
+#SBATCH --job-name extract_shap_cls_blocks.0.drop_path1
 #SBATCH --gres=gpu:1
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=25G
@@ -28,9 +28,11 @@ export MASTER_PORT=16445
 # --data_root "/local_datasets/ai_hub_sketch_mw/01/train"
 python -u /data/jongseo/project/WWW/extract_shap.py \
 --data_root "/local_datasets/ILSVRC2012/train" \
---shap_save_root "shapley/vit_base_in1K_class_shap.pkl" \
+--shap_save_root "shapley/vit_base_cls_blocks.0.drop_path1_in1K_class_shap.pkl" \
+--target_layer cls_blocks.0.drop_path1 \
 --model vit
 
+# 
     
 echo "Job finish"
 exit 0

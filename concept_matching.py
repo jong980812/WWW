@@ -16,13 +16,13 @@ def parse_args():
     parser.add_argument('--img_save_root', default='.', help='Path to saved img')
     parser.add_argument('--img_feat_root', default='./utils', help='Path to img features')
     parser.add_argument('--concept_sim_root', default='./utils/', help='Path to concept idx data') 
-    parser.add_argument('--concept_sim_num', default=2, type=int, help='# of split concept sim(몇개의 파일에 쪼개서 저장할지)')
+    parser.add_argument('--concept_sim_num', default=4, type=int, help='# of split concept sim(몇개의 파일에 쪼개서 저장할지)')
     parser.add_argument('--concept_root', default='./utils', help='Path to concept')
-    parser.add_argument('--num_example', default=10, type=int, help='# of examples to be used')
+    parser.add_argument('--num_example', default=40, type=int, help='# of examples to be used')
     parser.add_argument('--alpha', default=95, type=int, help='# of concept to select in img')
     parser.add_argument('--layer', default='fc', help='target layer')
-    parser.add_argument('--data_size', default='80', help='# of concept (1k, 20k, 80k, 365, broaden)')
-    parser.add_argument('--detail', default=True, help='True(minor concept), False(major concept)')
+    parser.add_argument('--data_size', default=1,type=str, help='# of concept (1k, 20k, 80k, 365, broaden)')
+    parser.add_argument('--detail', default=False, help='True(minor concept), False(major concept)')
 
     return parser.parse_args()
 
@@ -104,14 +104,14 @@ def compute_concept_similarity(img_features, word_features, args, template_featu
     if adaptive: # template_features 1차원
         template_features = torch.Tensor(template_features).to(device) # template_features.shape : [512]
 
-    if img_features.shape[0] // args.num_example < args.concept_sim_num:
+    if img_features.shape[0] // args.num_example < args.concept_sim_num: # 40000 // 40
         args.concept_sim_num = img_features.shape[0] // args.num_example
 
     # 여기서 4개의 파일이 만들어짐 
     if adaptive:
         # for i in tqdm(range(len(img_features))):
         n=0
-        for i in range(len(img_features)): # 80
+        for i in range(len(img_features)): # 40000 ( # of class * 40)
             n+=1
             if n % 1000 == 0:
                 print("compute_concept_similarity : %d / %d" %(i, len(img_features)))
@@ -245,7 +245,12 @@ def concept_discovery(all_synsets, args, all_words_wotem=None, detail=False,  ad
 
     with open(f'{args.concept_root}/www_{data}k_{tem_name}_{adp_name}_{args.alpha}.pkl', 'wb') as f: # directory of NM_img_val_1k.pkl
         pickle.dump((concept,concept_weight), f)
-
+    with open(f'{args.concept_root}/www_{data}k_{tem_name}_{adp_name}_{args.alpha}.pkl','rb') as f:
+        data = pickle.load(f)
+    with open(f'{args.concept_root}/concpet.txt', 'w') as f:
+        for index, values in enumerate(data[0]):
+            line = f"{index}: {', '.join(values)}\n"
+            f.write(line)
 
 def main():
 
@@ -262,7 +267,7 @@ def main():
     data = args.data_size   # 1k, 20k, 80k, 365, broaden
     layer = args.layer      # fc, l4, l3, l2, l1
     detail = args.detail    # True(minor concept), False(major concept)
-    args.img_save_root = f'{args.img_save_root}/images/example_val_{layer}'
+    args.img_save_root = f'{args.img_save_root}/example_val_{layer}'
 
     if template:
         all_words_wotem = []
@@ -270,7 +275,7 @@ def main():
         all_words_wotem = None
         adaptive = False
 
-    if data== 1:
+    if data== "1":
         with open('./utils/imagenet_labels.txt', 'r') as f:  # directory of imagenet_labels.txt
             words = (f.read()).split('\n')
         for i in range(len(words)):
@@ -282,7 +287,7 @@ def main():
                     all_words_wotem.append(f'{word}')    
                 else:
                     all_words.append(f'{word}')
-    elif data == 80:
+    elif data == "80":
         nltk.download('wordnet')
         from nltk.corpus import wordnet as wn
         for synset in wn.all_synsets('n'):
@@ -293,7 +298,7 @@ def main():
             else:
                 all_words.append(f'{word}')
             all_synsets.append(synset)
-    elif data == 365:
+    elif data == "365":
         with open("./utils/categories_places365.txt", "r") as f:
             places365_classes = f.read().split("\n")
 
@@ -343,6 +348,7 @@ def main():
 
     if True:   
         concept_discovery(all_words, args, all_words_wotem=all_words_wotem, detail=detail, adaptive=adaptive, data=data, template=template)
+    import pickle
 
 
 if __name__ == '__main__':

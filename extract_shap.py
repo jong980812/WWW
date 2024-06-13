@@ -10,14 +10,14 @@ from models import ViT
 def parse_args():
     parser = argparse.ArgumentParser(description='Say hello')
     parser.add_argument('--data_root', default='./datasets/ILSVRC-2012/train', help='Path to ImageNet data')
-    parser.add_argument('--shap_save_root', default='./utils/class_shap.pkl', help='Path to Shapley value matrix data')
+    parser.add_argument('--shap_save_root', default='./utils/debug.pkl', help='Path to Shapley value matrix data',type=str)
     parser.add_argument('--model',default='resnet50',)
     parser.add_argument('--target_layer',default='head')
     return parser.parse_args()
 
 
 def main():
-    
+    avgpool1d = torch.nn.AdaptiveAvgPool1d(1)
     args = parse_args()
 
     ## Load model ##
@@ -41,7 +41,7 @@ def main():
         class_dim = 2
     elif args.model =='vit':
         model = timm.create_model('vit_base_patch16_224',True)
-        featdim = 1000
+        featdim = 768
         class_dim = 1000
     '''
     model.fc. 어쩌구 해서 shape바꿈
@@ -56,8 +56,8 @@ def main():
             tv.transforms.Resize(256),
             tv.transforms.CenterCrop(224),
             tv.transforms.ToTensor(),
-            tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
-                                    std=[0.065, 0.065, 0.065]),
+            tv.transforms.Normalize(mean = [0.485, 0.456, 0.406],
+                                   std = [0.229, 0.224, 0.225]),
         ])
 
     traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
@@ -101,7 +101,8 @@ def main():
             for image, labels in (trainloader):
                 image = image.cuda()
                 c+=1
-                if c%100==0:print(c) 
+                if c%100==0:
+                    print(c)
                 if class_num != labels:
                     for i in range(len(shap)):
                         shap_temp += shap[i].squeeze()    
@@ -110,8 +111,9 @@ def main():
                     shap_temp = np.zeros(featdim)
                     class_num += 1
                         
-                shap_batch  = model._compute_taylor_scores(image, labels)
-                shap.append(shap_batch[0][0].squeeze().cpu().detach().numpy())
+                shap_batch  = model._compute_taylor_scores(image, labels,args.target_layer)
+                shap_batch_get = avgpool1d(shap_batch[0][0].transpose(-2,-1).squeeze()) if len(shap_batch[0][0].shape)>2 else shap_batch[0][0].squeeze()
+                shap.append(shap_batch_get.cpu().detach().numpy())
 
             for i in range(len(shap)):
                 shap_temp += shap[i].squeeze()    

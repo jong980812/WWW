@@ -11,9 +11,9 @@ import torch
 import pandas as pd
 
 from torch.nn.functional import cosine_similarity
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 
-import CLIP_dissect.clip as clip ## clip-dissect
+# import CLIP_dissect.clip as clip ## clip-dissect
 
 def make_dir(ours, mode, save_dir, cd_num=1, is_debug=False):
     if is_debug == True:

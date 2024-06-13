@@ -22,7 +22,7 @@ def parse_args():
 def main():
     
     args = parse_args()
-    args.image_save_root = f'{args.img_save_root}/images/example_val_{args.layer}'
+    args.image_save_root = f'{args.img_save_root}/example_val_{args.layer}'
 
     ## Load model ##
     ##### ResNET50 #####
@@ -44,7 +44,7 @@ def main():
         #! (fc): Linear(in_features=2048, out_features=2, bias=True)
 
     ##### ViT-B 16  #####
-    elif args.model == 'vitb16':
+    elif args.model == 'vit':
         from models.ViT import _create_vision_transformer
         model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12)
         model = _create_vision_transformer('vit_base_patch16_224', pretrained=True, **dict(model_kwargs))
@@ -69,8 +69,8 @@ def main():
                 tv.transforms.Resize(256),
                 tv.transforms.CenterCrop(224),
                 tv.transforms.ToTensor(),
-                tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
-                                    std=[0.065, 0.065, 0.065]),
+                tv.transforms.Normalize(mean = [0.485, 0.456, 0.406],
+                                   std = [0.229, 0.224, 0.225]),
         ])
 
         traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
@@ -97,8 +97,8 @@ def main():
                 tv.transforms.Resize(256),
                 tv.transforms.CenterCrop(224),
                 tv.transforms.ToTensor(),
-                tv.transforms.Normalize(mean=[0.98, 0.98, 0.98],
-                                    std=[0.065, 0.065, 0.065]),
+                tv.transforms.Normalize(mean = [0.485, 0.456, 0.406],
+                                   std = [0.229, 0.224, 0.225]),
         ])
 
         traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
@@ -110,6 +110,62 @@ def main():
             for batch_idx, (image, labels) in enumerate(tqdm(trainloader)):
                 image = image.cuda()
                 act_matrix.append(model.extract_feature_4(image).squeeze().cpu().detach().numpy())
+                if batch_idx % int(len(trainloader)/args.num_act) == 0 and batch_idx != 0:
+                    act_matrix = np.concatenate(act_matrix, axis=0)
+                    with open(f"{args.save_root}/slice_act_{counter}_{layer}", 'wb') as f:
+                        pickle.dump(act_matrix, f)
+                    counter += 1
+                    act_matrix = []
+            if args.num_act == 1:
+                act_matrix = np.concatenate(act_matrix, axis=0)
+                with open(f"{args.save_root}/slice_act_{counter}_{layer}", 'wb') as f:
+                    pickle.dump(act_matrix, f)
+    elif layer == 'patch_embed':
+        transform = tv.transforms.Compose([
+                tv.transforms.Resize(256),
+                tv.transforms.CenterCrop(224),
+                tv.transforms.ToTensor(),
+                tv.transforms.Normalize(mean = [0.485, 0.456, 0.406],
+                                   std = [0.229, 0.224, 0.225]),
+        ])
+
+        traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
+        trainloader = torch.utils.data.DataLoader(traindata, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
+        with torch.no_grad():
+            act_matrix = []
+            counter = 0
+
+            for batch_idx, (image, labels) in enumerate(tqdm(trainloader)):
+                image = image.cuda()
+                act_matrix.append(model.extract_feature_patch_embed(image).squeeze().cpu().detach().numpy())
+                if batch_idx % int(len(trainloader)/args.num_act) == 0 and batch_idx != 0:
+                    act_matrix = np.concatenate(act_matrix, axis=0)
+                    with open(f"{args.save_root}/slice_act_{counter}_{layer}", 'wb') as f:
+                        pickle.dump(act_matrix, f)
+                    counter += 1
+                    act_matrix = []
+            if args.num_act == 1:
+                act_matrix = np.concatenate(act_matrix, axis=0)
+                with open(f"{args.save_root}/slice_act_{counter}_{layer}", 'wb') as f:
+                    pickle.dump(act_matrix, f)
+    elif 'cls' in layer:
+        transform = tv.transforms.Compose([
+                tv.transforms.Resize(256),
+                tv.transforms.CenterCrop(224),
+                tv.transforms.ToTensor(),
+                tv.transforms.Normalize(mean = [0.485, 0.456, 0.406],
+                                   std = [0.229, 0.224, 0.225]),
+        ])
+
+        traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
+        trainloader = torch.utils.data.DataLoader(traindata, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
+        with torch.no_grad():
+            act_matrix = []
+            counter = 0
+            layer_num = int(layer.split('_')[0])
+            for batch_idx, (image, labels) in enumerate(tqdm(trainloader)):
+                image = image.cuda()
+                act_matrix.append(model.extract_cls_feature(image,layer_num).squeeze().cpu().detach().numpy())
                 if batch_idx % int(len(trainloader)/args.num_act) == 0 and batch_idx != 0:
                     act_matrix = np.concatenate(act_matrix, axis=0)
                     with open(f"{args.save_root}/slice_act_{counter}_{layer}", 'wb') as f:

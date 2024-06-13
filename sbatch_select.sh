@@ -5,10 +5,10 @@
 #SBATCH --cpus-per-gpu=8
 #SBATCH --mem-per-gpu=25G
 #SBATCH --time 1-00:00:0
-#SBATCH --partition batch_ce_ugrad
-#SBATCH -w moana-y4
-#SBATCH -o /data/psh68380/repos/WWW/sbatch_log/%A-%x.out
-#SBATCH -e /data/psh68380/repos/WWW/sbatch_log/%A-%x.err
+#SBATCH --partition batch
+#SBATCH -w augi2
+#SBATCH -o /data/jongseo/project/WWW/%A-%x.out
+#SBATCH -e /data/jongseo/project/WWW/%A-%x.err
 echo $PWD
 echo $SLURMD_NODENAME
 current_time=$(date "+%Y%m%d-%H:%M:%S")
@@ -28,12 +28,13 @@ export MASTER_PORT=12345
 # !! y1, y6은 데이터 경로 ai_hub_sketch_mw 부터, y3은 ai_hub부터
 # ! asd 데이터는 y4
 
-python -u /data/psh68380/repos/WWW/example_selection.py \
---data_root "/local_datasets/asd/All_ver2/03/val_3x3cropped" \
---layer "l4" \
---save_root "asd_utils/cropped/exampler" \
---img_save_root "asd_utils/cropped/" \
---num_example 10
+python -u /data/jongseo/project/WWW/example_selection_imagenet.py \
+--data_root "/local_datasets/ILSVRC2012/val" \
+--model vit \
+--layer "11_cls" \
+--save_root "/data/jongseo/project/WWW/example_selection/vit_layer11_cls" \
+--img_save_root "/data/jongseo/project/WWW/example_selection/vit_layer11_cls" \
+
     
 
 echo "Job finish"

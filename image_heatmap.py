@@ -19,8 +19,9 @@ def parse_args():
     parser.add_argument('--example_root', default='./datasets/ILSVRC-2012/val', help='Path to D_probe')
     parser.add_argument('--heatmap_save_root', default='./heatmap', help='Path to saved img')
     parser.add_argument('--num_example', default=50, type=int, help='# of examples to be used')
-    parser.add_argument('--util_root', default='./utils', help='Path to utils')
+    parser.add_argument('--shapley_root', default='./utils', help='Path to utils')
     parser.add_argument('--map_root', default='./heatmap_info', help='Path to utils')
+    parser.add_argument('--model', default='resnet50',type=str, help='Path to utils')
 
     return parser.parse_args()
 
@@ -54,7 +55,7 @@ def get_alpha_cmap(cmap):
 def concept_attribution_maps(cmaps, args, model, example_loader, num_top_neuron=5, percentile=90, alpha=0.7, gt=False):
     
     # with open(f"{args.util_root}/heat/class_shap.pkl", "rb") as f:
-    with open(f"{args.util_root}/class_shap.pkl", "rb") as f:
+    with open(args.shapley_root, "rb") as f:
         shap_value = pkl.load(f) # 2 * 2048
 
     c_heatmap = []
@@ -263,24 +264,29 @@ def compute_heatmap_cosine_similarity(args):
 def main():
     
     args = parse_args()
-
+    if args.model =='resnet50':
+        
     ## Load model ##
     ##### ResNET50 #####
-    from models.resnet import resnet50, ResNet50_Weights
-    weights = ResNet50_Weights.DEFAULT
-    model = resnet50(weights=weights)    
+        from models.resnet import resnet50, ResNet50_Weights
+        weights = ResNet50_Weights.DEFAULT
+        model = resnet50(weights=weights)    
 
-    weights_path ='/data/psh68380/repos/WWW/checkpoint-2.pth'
-    model.fc = torch.nn.Linear(2048, 2)#! head를 pth랑 맞춰줌
-    
-    pretrained_weights = torch.load(weights_path,map_location='cpu')#! pth를 읽어서 변수에 담음. 
-    #! pretrained_weights['model']-> 이게 weight고 디버거에서 찍어보고
-    print(f"Load pretrained from {weights_path}")
-    print(model.load_state_dict(pretrained_weights['model'],strict=True))
-    #!print()-> all key matching
-    for name, layer in model.named_modules():
-      if isinstance(layer, torch.nn.Conv2d):
-          layer.padding_mode = 'replicate'
+        weights_path ='/data/psh68380/repos/WWW/checkpoint-2.pth'
+        model.fc = torch.nn.Linear(2048, 2)#! head를 pth랑 맞춰줌
+        
+        pretrained_weights = torch.load(weights_path,map_location='cpu')#! pth를 읽어서 변수에 담음. 
+        #! pretrained_weights['model']-> 이게 weight고 디버거에서 찍어보고
+        print(f"Load pretrained from {weights_path}")
+        print(model.load_state_dict(pretrained_weights['model'],strict=True))
+        #!print()-> all key matching
+        for name, layer in model.named_modules():
+            if isinstance(layer, torch.nn.Conv2d):
+                layer.padding_mode = 'replicate'
+    elif args.model =='vit':
+        from models.ViT import _create_vision_transformer
+        model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12)
+        model = _create_vision_transformer('vit_base_patch16_224', pretrained=True, **dict(model_kwargs))
     model = model.cuda()
     model.eval()
     featdim = 2048

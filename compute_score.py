@@ -9,7 +9,7 @@ import torch
 import pandas as pd
 
 from torch.nn.functional import cosine_similarity
-from sentence_transformers import SentenceTransformer
+# from sentence_transformers import SentenceTransformer
 
 import clip
 import utils.metric_utils as metric
@@ -53,7 +53,7 @@ def main(args):
 if __name__ == '__main__':
     
     parser = argparse.ArgumentParser(description='Metric')
-    parser.add_argument('--gt', type=str, default='/data/imagenet_labels.txt')
+    parser.add_argument('--gt', type=str, default='/data/jongseo/project/WWW/utils/imagenet_labels.txt')
     parser.add_argument('--target_pkl', type=str, default='/resnet50_imagenet_fc.pkl')
     parser.add_argument('--clip_name', type=str, default='ViT-B/16')
     parser.add_argument('--batch_size', type=int, default=200)

@@ -15,3 +15,5 @@ shapley/
 exampler/
 *.out
 *.err
+example_selection/
+concept_matching/
