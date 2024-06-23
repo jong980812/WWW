@@ -40,7 +40,9 @@ def main():
         featdim = 2 if args.target_layer =='head' else 2048
         class_dim = 2
     elif args.model =='vit':
-        model = timm.create_model('vit_base_patch16_224',True)
+        from models.ViT import _create_vision_transformer
+        model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12)
+        model = _create_vision_transformer('vit_base_patch16_224', pretrained=True, **dict(model_kwargs))
         featdim = 768
         class_dim = 1000
     '''

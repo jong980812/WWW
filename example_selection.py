@@ -74,7 +74,7 @@ def main():
         ])
 
         traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
-        trainloader = torch.utils.data.DataLoader(traindata, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
+        trainloader = torch.utils.data.DataLoader(traindata, batch_size=32, shuffle=False, pin_memory=True, num_workers=8)
         with torch.no_grad():
             act_matrix = []
             counter = 0

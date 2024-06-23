@@ -32,8 +32,8 @@ python -u /data/jongseo/project/WWW/example_selection_imagenet.py \
 --data_root "/local_datasets/ILSVRC2012/val" \
 --model vit \
 --layer "11_cls" \
---save_root "/data/jongseo/project/WWW/example_selection/vit_layer11_cls" \
---img_save_root "/data/jongseo/project/WWW/example_selection/vit_layer11_cls" \
+--save_root "/data/jongseo/project/WWW/example_selection/vit_tiny/vit_layer11_cls" \
+--img_save_root "/data/jongseo/project/WWW/example_selection/vit_tiny/vit_layer11_cls" \
 
     
 

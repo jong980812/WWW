@@ -46,8 +46,8 @@ def main():
     ##### ViT-B 16  #####
     elif args.model == 'vit':
         from models.ViT import _create_vision_transformer
-        model_kwargs = dict(patch_size=16, embed_dim=768, depth=12, num_heads=12)
-        model = _create_vision_transformer('vit_base_patch16_224', pretrained=True, **dict(model_kwargs))
+        model_kwargs = dict(patch_size=16, embed_dim=192, depth=12, num_heads=3)
+        model = _create_vision_transformer('vit_tiny_patch16_224', pretrained=True, **dict(model_kwargs))
 
     ##### ResNet-18  #####
     elif args.model == 'rn18':
@@ -158,7 +158,7 @@ def main():
         ])
 
         traindata = tv.datasets.ImageFolder(args.data_root, transform=transform)
-        trainloader = torch.utils.data.DataLoader(traindata, batch_size=128, shuffle=False, pin_memory=True, num_workers=4)
+        trainloader = torch.utils.data.DataLoader(traindata, batch_size=128, shuffle=False, pin_memory=True, num_workers=8)
         with torch.no_grad():
             act_matrix = []
             counter = 0

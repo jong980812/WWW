@@ -23,11 +23,11 @@ export MASTER_PORT=12045
 # this script is for 2 GPUs (1 nodes x 2 GPUs)
 python -u /data/jongseo/project/WWW/concept_matching.py \
 --word_save_root "/data/jongseo/project/WWW/utils/words_feat_80k.pkl" \
---img_save_root "/data/jongseo/project/WWW/example_selection/vit_layer9_cls" \
---img_feat_root "/data/jongseo/project/WWW/concept_matching/vit_layer9_cls" \
---concept_sim_root "/data/jongseo/project/WWW/concept_matching/vit_layer9_cls" \
---concept_root "/data/jongseo/project/WWW/concept_matching/vit_layer9_cls" \
---layer 9_cls \
+--img_save_root "/data/jongseo/project/WWW/example_selection/vit_tiny/vit_layer11_cls" \
+--img_feat_root "/data/jongseo/project/WWW/concept_matching/vit_tiny/vit_layer11_cls" \
+--concept_sim_root "/data/jongseo/project/WWW/concept_matching/vit_tiny/vit_layer11_cls" \
+--concept_root "/data/jongseo/project/WWW/concept_matching/vit_tiny/vit_layer11_cls" \
+--layer 11_cls \
 --num_example 40 \
 --data_size 80
     
